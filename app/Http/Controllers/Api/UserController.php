@@ -4,105 +4,86 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
-use App\Models\User;
+use App\Interfaces\UserServiceInterface;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    // retorna todos os usuários paginados
-    public function index() : JsonResponse{
-        $users = User::orderBy("id","desc")->paginate(2);
+    protected $userService;
+
+    public function __construct(UserServiceInterface $userService)
+    {
+        $this->userService = $userService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $users = $this->userService->getAllUsers();
         
         return response()->json([
             'status' => true,
             'users' => $users,
         ], 200);
     }
-    // retorna os detalhes de um usuário especifico
-    public function show(User $user) : JsonResponse {
+
+    public function show(int $id): JsonResponse
+    {
+        $userDTO = $this->userService->getUserById($id);
         return response()->json([
             'status' => true,
-            'users' => $user,
+            'user' => $userDTO->toArray(),
         ], 200);
     }
 
-    public function store(UserRequest $request) {
-        DB::beginTransaction();
-        
-        try{
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => $request->password,
-            ]);
-
-            DB::commit();
+    public function store(UserRequest $request): JsonResponse
+    {
+        try {
+            $userDTO = $this->userService->createUser($request->validated());
 
             return response()->json([
                 'status' => true,
-                'user' => $user,
+                'user' => $userDTO->toArray(),
                 'message' => "Usuário cadastrado com sucesso!",
             ], 201);
-
-        } catch(\Exception $e) {
-
-            DB::rollBack();
-
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => "Usuário não cadastrado!",
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
 
-    public function update(UserRequest $request, User $user) : JsonResponse {
-
-        DB::beginTransaction();
-
+    public function update(UserRequest $request, int $id): JsonResponse
+    {
         try {
-
-            $user->update([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => $request->password,
-            ]);
-
-            DB::commit();
+            $userDTO = $this->userService->updateUser($id, $request->validated());
 
             return response()->json([
                 'status' => true,
-                'user' => $user,
+                'user' => $userDTO->toArray(),
                 'message' => "Usuário editado com sucesso!",
             ], 200);
-            
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return response()->json([
                 'status' => false,
-                'message' => "Usuário não editado!",
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
 
-
-    public function destroy(User $user) : JsonResponse{
+    public function destroy(int $id): JsonResponse
+    {
         try {
-            $user->delete();
+            $this->userService->deleteUser($id);
 
             return response()->json([
                 'status' => true,
-                'user' => $user,
                 'message' => "Usuário apagado com sucesso!",
             ], 200);
-            
-            
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => "Usuário não deletado!",
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
