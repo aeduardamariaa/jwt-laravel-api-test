@@ -4,18 +4,18 @@ namespace App\Services;
 
 use App\Interfaces\AuthServiceInterface;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Dto\AuthDto\AuthDto;
-use App\Dto\UserDto\UserDto;
+use App\Dto\AuthDto\AuthDtoResponse;
+use App\Dto\UserDto\UserDtoResponse;
 
 class AuthService implements AuthServiceInterface
 {
-    public function login(array $credentials): AuthDto
+    public function login(array $credentials): AuthDtoResponse
     {
         if (!$token = auth('api')->attempt($credentials)) {
             throw new \Exception('Unauthorized', 401);
         }
 
-        return new AuthDto($token, 'bearer', auth('api')->factory()->getTTL() * 180);
+        return new AuthDtoResponse($token, 'bearer', auth('api')->factory()->getTTL() * 180);
     }
 
     public function logout(): void
@@ -23,15 +23,15 @@ class AuthService implements AuthServiceInterface
         JWTAuth::invalidate(JWTAuth::getToken());
     }
 
-    public function refresh(): AuthDto
+    public function refresh(): AuthDtoResponse
     {
         $token = auth('api')->refresh();
-        return new AuthDto($token, 'bearer', auth('api')->factory()->getTTL() * 180);
+        return new AuthDtoResponse($token, 'bearer', auth('api')->factory()->getTTL() * 180);
     }
 
-    public function me(): UserDto
+    public function me(): UserDtoResponse
     {
         $user = auth('api')->user();
-        return new UserDto($user->id, $user->name, $user->email);
+        return new UserDtoResponse($user->id, $user->name, $user->email);
     }
 }

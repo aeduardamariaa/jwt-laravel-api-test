@@ -35,7 +35,7 @@ class UserRequest extends FormRequest
 
         return [
             'name' => 'required',
-            'email' => 'required|email|unique:users,email,'. ($userId? $userId->id : null),
+            'email' => 'required|email|unique:users,email,'. ($userId ? $userId : null),
             'password' => 'required|min:6'
         ];
     }

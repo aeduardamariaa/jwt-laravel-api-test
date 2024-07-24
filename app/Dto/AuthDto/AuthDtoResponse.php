@@ -2,7 +2,7 @@
 
 namespace App\Dto\AuthDto;
 
-class AuthDto
+class AuthDtoResponse
 {
     public $access_token;
     public $token_type;
