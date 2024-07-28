@@ -12,7 +12,7 @@ class UserService implements UserServiceInterface
 {
     public function getAllUsers(): LengthAwarePaginator
     {
-        $users = User::orderBy('id', 'desc')->paginate(2);
+        $users = User::orderBy('id', 'desc')->paginate(5);
 
         $userDTOs = $users->getCollection()->transform(function ($user) {
             return new UserDtoResponse($user->id, $user->name, $user->email);
